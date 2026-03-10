@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>InvKantor v5 — Sistem Inventaris</title>
+
+  <!--
+    ═══════════════════════════════════════════════
+    EXTERNAL LIBRARY (kriteria j):
+      1. Tailwind CSS  — utility-first CSS framework
+      2. Google Fonts  — Syne + Outfit typography
+    ═══════════════════════════════════════════════
+  -->
+
+  <!-- Google Fonts (External Library) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Outfit:wght@300;400;500;600&display=swap"
+    rel="stylesheet"/>
+
+  <!-- Tailwind CSS CDN (External Library — kriteria j) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Custom CSS (file terpisah) -->
+  <link rel="stylesheet" href="assets/css/style.css"/>
+</head>
+
+<body>
+
+<!-- ════════════════════════════════════════════
+     HALAMAN LOGIN
+════════════════════════════════════════════ -->
+<div id="loginPage" class="login-wrap">
+  <div class="login-card fade-in">
+
+    <!-- Header card -->
+    <div class="login-top">
+      <div class="login-logo">📦</div>
+      <h1>InvKantor</h1>
+      <p>Sistem Inventaris Kantor v5</p>
+    </div>
+
+    <!-- Body form login -->
+    <div class="login-body">
+
+      <!-- Pesan error -->
+      <div id="loginErr" class="field-err"></div>
+
+      <!-- Field username -->
+      <div class="field-group">
+        <label class="field-label" for="loginUser">Username</label>
+        <input
+          id="loginUser"
+          type="text"
+          class="field"
+          placeholder="Masukkan username"/>
+      </div>
+
+      <!-- Field password -->
+      <div class="field-group">
+        <label class="field-label" for="loginPass">Password</label>
+        <input
+          id="loginPass"
+          type="password"
+          class="field"
+          placeholder="Masukkan password"/>
+      </div>
+
+      <!-- Tombol login -->
+      <button
+        id="loginBtn"
+        class="btn btn-primary"
+        style="width:100%; justify-content:center; margin-top:.5rem"
+        onclick="doLogin()">
+        Masuk →
+      </button>
+
+      <!-- Hint akun demo -->
+      <div class="login-hint">
+        <strong>Akun Demo:</strong><br/>
+        Username: <code>admin</code> &nbsp;|&nbsp; Password: <code>admin123</code>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     HALAMAN UTAMA APP
+════════════════════════════════════════════ -->
+<div id="app" style="display:none; flex-direction:column; min-height:100vh;">
+
+  <!-- ── Navbar ─────────────────────────────── -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+
+      <!-- Brand -->
+      <div class="brand">
+        <div class="brand-icon">📦</div>
+        <span class="brand-name">InvKantor</span>
+        <span style="color:var(--c-text3); font-size:.78rem; display:none;" class="sm-show">
+          / Inventaris
+        </span>
+      </div>
+
+      <!-- User info + logout -->
+      <div style="display:flex; align-items:center; gap:.75rem;">
+        <div class="user-pill">
+          <div class="user-avatar" id="navAvatar">A</div>
+          <span id="navNama" style="font-size:.82rem; font-weight:500; color:var(--c-text);">Admin</span>
+          <span style="font-size:.7rem; color:var(--c-text3); background:var(--c-bg); padding:1px 8px; border-radius:99px; border:1px solid var(--c-border);">admin</span>
+        </div>
+        <button class="btn btn-ghost" onclick="doLogout()" style="padding:.4rem .75rem; font-size:.8rem;">
+          Keluar ↗
+        </button>
+      </div>
+
+    </div>
+  </nav>
+
+  <!-- ── Konten Utama ───────────────────────── -->
+  <main class="main-wrap" style="flex:1;">
+
+    <!-- Page header -->
+    <div class="page-header">
+      <div>
+        <h2 class="page-title">Data Barang</h2>
+        <p class="page-sub">Kelola inventaris aset kantor Anda</p>
+      </div>
+      <button class="btn btn-primary" onclick="bukaForm()">
+        ＋ Tambah Barang
+      </button>
+    </div>
+
+    <!-- Toolbar filter & pencarian -->
+    <div class="toolbar">
+
+      <!-- Search -->
+      <div class="search-wrap">
+        <span class="search-ico">🔍</span>
+        <input
+          id="cariInput"
+          type="text"
+          class="field"
+          placeholder="Cari nama, kode, atau lokasi…"
+          oninput="cariDelay()"/>
+      </div>
+
+      <!-- Filter kategori -->
+      <select id="filterKat" class="field" style="width:auto;" onchange="muatBarang()">
+        <option value="">Semua Kategori</option>
+      </select>
+
+      <!-- Filter kondisi -->
+      <select id="filterKond" class="field" style="width:auto;" onchange="muatBarang()">
+        <option value="">Semua Kondisi</option>
+        <option>Baik</option>
+        <option>Rusak</option>
+        <option>Dalam Servis</option>
+      </select>
+
+    </div>
+
+    <!-- Tabel inventaris -->
+    <div class="table-card">
+
+      <!-- Table card header -->
+      <div class="table-card-head">
+        <span class="table-card-title">Daftar Inventaris</span>
+        <span id="tblCount" class="count-pill">— item</span>
+      </div>
+
+      <!-- Tabel -->
+      <div class="tbl-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Kode</th>
+              <th>Nama Barang</th>
+              <th>Kategori</th>
+              <th>Qty</th>
+              <th>Lokasi</th>
+              <th>Kondisi</th>
+              <th>Tgl Masuk</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tblBody">
+            <tr>
+              <td colspan="9" class="loading-cell">
+                <span class="spinner"></span>Memuat data…
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+    <!-- /table-card -->
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    InvKantor v5 &mdash; PHP + MySQL + Tailwind CSS &nbsp;|&nbsp; 2025
+  </footer>
+
+</div>
+<!-- /#app -->
+
+
+<!-- ════════════════════════════════════════════
+     MODAL FORM TAMBAH / EDIT
+════════════════════════════════════════════ -->
+<div id="modalOv" class="overlay" onclick="if(event.target===this)tutupModal()">
+  <div class="modal">
+
+    <!-- Header -->
+    <div class="modal-head">
+      <h3 class="modal-title font-display" id="modalTitle">Tambah Barang</h3>
+      <button class="modal-close" onclick="tutupModal()">✕</button>
+    </div>
+
+    <!-- Body form -->
+    <div class="modal-body">
+      <div class="form-grid">
+
+        <!-- Nama barang -->
+        <div class="col-full field-group">
+          <label class="field-label" for="fNama">Nama Barang <span style="color:var(--c-err)">*</span></label>
+          <input id="fNama" type="text" class="field" placeholder="Contoh: Laptop Dell XPS 15"/>
+        </div>
+
+        <!-- Kode barang -->
+        <div class="field-group">
+          <label class="field-label" for="fKode">
+            Kode Barang
+            <span style="color:var(--c-text3); font-weight:400; text-transform:none; letter-spacing:0;">(kosongkan = otomatis)</span>
+          </label>
+          <input id="fKode" type="text" class="field" placeholder="ELK-001"/>
+        </div>
+
+        <!-- Kategori -->
+        <div class="field-group">
+          <label class="field-label" for="fKat">Kategori <span style="color:var(--c-err)">*</span></label>
+          <select id="fKat" class="field">
+            <option value="">— Pilih Kategori —</option>
+          </select>
+        </div>
+
+        <!-- Jumlah -->
+        <div class="field-group">
+          <label class="field-label" for="fJml">Jumlah Unit <span style="color:var(--c-err)">*</span></label>
+          <input id="fJml" type="number" min="1" class="field" placeholder="1"/>
+        </div>
+
+        <!-- Kondisi -->
+        <div class="field-group">
+          <label class="field-label" for="fKond">Kondisi <span style="color:var(--c-err)">*</span></label>
+          <select id="fKond" class="field">
+            <option>Baik</option>
+            <option>Rusak</option>
+            <option>Dalam Servis</option>
+          </select>
+        </div>
+
+        <!-- Lokasi -->
+        <div class="col-full field-group">
+          <label class="field-label" for="fLok">Lokasi <span style="color:var(--c-err)">*</span></label>
+          <input id="fLok" type="text" class="field" placeholder="Contoh: Ruang IT, Lantai 2"/>
+        </div>
+
+        <!-- Tanggal masuk -->
+        <div class="field-group">
+          <label class="field-label" for="fTgl">Tanggal Masuk <span style="color:var(--c-err)">*</span></label>
+          <input id="fTgl" type="date" class="field"/>
+        </div>
+
+        <!-- Spacer -->
+        <div></div>
+
+        <!-- Keterangan -->
+        <div class="col-full field-group">
+          <label class="field-label" for="fKet">Keterangan</label>
+          <textarea id="fKet" rows="2" class="field" style="resize:none;"
+            placeholder="Spesifikasi, catatan, atau kondisi detail…"></textarea>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="tutupModal()">Batal</button>
+      <button id="simpanBtn" class="btn btn-primary" onclick="simpan()">＋ Simpan</button>
+    </div>
+
+  </div>
+</div>
+<!-- /#modalOv -->
+
+
+<!-- ════════════════════════════════════════════
+     DIALOG KONFIRMASI HAPUS
+════════════════════════════════════════════ -->
+<div id="confOv" class="conf-overlay">
+  <div class="conf-box">
+    <div class="conf-ico">🗑️</div>
+    <h4 class="conf-title font-display">Hapus Barang?</h4>
+    <p class="conf-text">
+      Tindakan ini <strong>tidak bisa dibatalkan</strong>.<br/>
+      Data akan dihapus secara permanen dari database.
+    </p>
+    <div class="conf-btns">
+      <button class="btn btn-outline" onclick="tutupConf()">Batal</button>
+      <button class="btn btn-del" style="flex:1; justify-content:center;" onclick="eksekusiHapus()">
+        Ya, Hapus
+      </button>
+    </div>
+  </div>
+</div>
+<!-- /#confOv -->
+
+
+<!-- Toast container -->
+<div id="toastWrap" class="toast-wrap"></div>
+
+
+<!--
+  ═══════════════════════════════════════════════
+  JAVASCRIPT (file terpisah — kriteria: pisahkan CSS & JS)
+  ═══════════════════════════════════════════════
+-->
+<script src="assets/js/app.js"></script>
+
+</body>
+</html>
